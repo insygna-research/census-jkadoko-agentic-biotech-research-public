@@ -28,3 +28,35 @@ tags:
   - "healthcare"
   - "legal"
   - "python"
+
+# The app container: biotech-app (Streamlit UI, built from the repo root). The others are sized under
+# runtime.containers.
+resources:
+  cpu:
+    request: "250m"
+    limit: "1"
+  memory:
+    request: "512Mi"
+    limit: "1Gi"
+
+runtime:
+  app_port: 8501
+  # Only the UI and the scheduler, plus what they depend_on (chromadb). Left out: ollama-gpu0/1 (behind the
+  # compose "gpu" profile and reserving NVIDIA GPUs the platform does not have) and nginx (its nginx.conf and
+  # .htpasswd are not in the repository; the platform fronts the app itself).
+  compose_services:
+    - biotech-app
+    - scheduler
+  containers:
+    - name: biotech-app
+      role: app
+    - name: scheduler
+      role: auxiliary
+      resources:
+        cpu: { request: "250m", limit: "1" }
+        memory: { request: "512Mi", limit: "1Gi" }
+    - name: chromadb
+      role: auxiliary
+      resources:
+        cpu: { request: "100m", limit: "500m" }
+        memory: { request: "512Mi", limit: "1Gi" }
